@@ -5,13 +5,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -20,7 +23,7 @@ import com.coolweather.app.util.HttpCallbackListener;
 import com.coolweather.app.util.HttpUtil;
 import com.coolweather.app.util.Utility;
 
-public class WeatherActivity extends Activity{
+public class WeatherActivity extends Activity implements OnClickListener{
 
 	private LinearLayout weatherInforLayout;
 	/**
@@ -46,7 +49,16 @@ public class WeatherActivity extends Activity{
 	/**
 	 * for show current date
 	 */
-	private TextView currentDateText;
+	private TextView currentDateText;	
+	/**
+	 * switch city button
+	 */
+	private Button switCity;
+	/**
+	 * update weather button
+	 */
+	private Button refreshWeather;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +75,11 @@ public class WeatherActivity extends Activity{
 		temp1Text = (TextView) findViewById(R.id.temp1);
 		temp2Text = (TextView) findViewById(R.id.temp2);
 		currentDateText = (TextView) findViewById(R.id.current_date);
+		switCity = (Button) findViewById(R.id.switch_city);
+		refreshWeather = (Button) findViewById(R.id.refresh_weather);
+		
+		switCity.setOnClickListener(this);
+		refreshWeather.setOnClickListener(this);
 		
 		String countyCode = getIntent().getStringExtra("county_code");
 		if (! TextUtils.isEmpty(countyCode)) {
@@ -74,6 +91,28 @@ public class WeatherActivity extends Activity{
 		}else {
 			//show local weather if doesn't has countyCode
 			showWeather();
+		}
+	}
+	
+	@Override
+	public void onClick(View v) {
+		// TODO Auto-generated method stub
+		switch (v.getId()) {
+		case R.id.switch_city:
+			Intent intent = new Intent(this,ChooseAreaActivity.class);
+			intent.putExtra("from_weather_activity", true);
+			startActivity(intent);
+			finish();
+			break;
+		case R.id.refresh_weather:
+			publishText.setText("同步中...");
+			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+			String weatherCode = prefs.getString("weather_code", "");
+			if (!TextUtils.isEmpty(weatherCode)) {
+				queryWeatherInfo(weatherCode);
+			}
+		default:
+			break;
 		}
 	}
 	
@@ -163,7 +202,6 @@ public class WeatherActivity extends Activity{
 		Log.d("WeatherAcivity", "show the weather");
 		cityNameText.setText(prefs.getString("city_name", ""));
 		temp1Text.setText(prefs.getString("temp1", ""));
-		System.out.println("temp1xxxx= "+prefs.getString("city_name", ""));
 		temp2Text.setText(prefs.getString("temp2", ""));
 		weatherDespText.setText(prefs.getString("weather_desp", ""));
 		publishText.setText("今天"+prefs.getString("publish_time", "") + "发布");
